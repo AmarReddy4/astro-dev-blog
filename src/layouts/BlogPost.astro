@@ -1,0 +1,71 @@
+---
+import type { CollectionEntry } from "astro:content";
+import BaseLayout from "./BaseLayout.astro";
+import TagList from "../components/TagList.astro";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+}
+
+const { post } = Astro.props;
+const { title, description, pubDate, updatedDate, tags } = post.data;
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function estimateReadingTime(content: string): number {
+  const words = content.split(/\s+/).length;
+  return Math.max(1, Math.ceil(words / 230));
+}
+
+const readingTime = estimateReadingTime(post.body);
+---
+
+<BaseLayout title={title} description={description}>
+  <article>
+    <header class="mb-10">
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4 leading-tight">
+        {title}
+      </h1>
+      <p class="text-slate-400 mb-4">{description}</p>
+      <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+        <time datetime={pubDate.toISOString()}>
+          {formatDate(pubDate)}
+        </time>
+        <span>&middot;</span>
+        <span>{readingTime} min read</span>
+        {updatedDate && (
+          <>
+            <span>&middot;</span>
+            <span>
+              Updated <time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time>
+            </span>
+          </>
+        )}
+      </div>
+      {tags.length > 0 && (
+        <div class="mt-4">
+          <TagList tags={tags} />
+        </div>
+      )}
+    </header>
+
+    <div class="prose prose-lg max-w-none">
+      <slot />
+    </div>
+
+    <footer class="mt-16 pt-8 border-t border-slate-800">
+      <a
+        href="/blog"
+        class="text-sky-400 hover:text-sky-300 transition-colors text-sm"
+      >
+        &larr; Back to all posts
+      </a>
+    </footer>
+  </article>
+</BaseLayout>
