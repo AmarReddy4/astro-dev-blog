@@ -1,0 +1,51 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostCard from "../../components/PostCard.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+
+  const tags = [...new Set(posts.flatMap((post) => post.data.tags))];
+
+  return tags.map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: posts
+        .filter((post) => post.data.tags.includes(tag))
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+interface Props {
+  tag: string;
+  posts: Awaited<ReturnType<typeof getCollection<"blog">>>;
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<BaseLayout title={`Posts tagged "${tag}"`}>
+  <section>
+    <div class="mb-10">
+      <a
+        href="/blog"
+        class="text-sm text-sky-400 hover:text-sky-300 transition-colors"
+      >
+        &larr; All posts
+      </a>
+      <h1 class="text-3xl font-bold text-white mt-4 mb-2">
+        Tagged: <span class="text-sky-400">{tag}</span>
+      </h1>
+      <p class="text-slate-400">
+        {posts.length} {posts.length === 1 ? "post" : "posts"} with this tag.
+      </p>
+    </div>
+
+    <div class="flex flex-col divide-y divide-slate-800">
+      {posts.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
+</BaseLayout>

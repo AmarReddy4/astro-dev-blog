@@ -62,7 +62,3 @@ draft: false
 
 Your content here...
 ```
-
-## License
-
-MIT
